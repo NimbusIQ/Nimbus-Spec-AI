@@ -12,6 +12,7 @@ const PRELOAD_URL = 'preload.png'; // Placeholder
 declare global {
   interface Window {
     webkitAudioContext: typeof AudioContext;
+    aistudio?: AIStudio;
   }
   interface AIStudio {
     hasSelectedApiKey: () => Promise<boolean>;
@@ -22,17 +23,53 @@ declare global {
 // --- Data Constants ---
 
 const CHARACTER_ATTRIBUTES: Record<string, any> = {
-  'dog': { name: 'Rowan "Barn" Beagle', emoji: '🐶', visualDescriptor: 'A beagle with floppy ears, a wet black nose, and an alert expression. Wears a small detective-style hat.' },
-  'cat': { name: 'Shiloh "Silky" Siamese', emoji: '🐱', visualDescriptor: 'A sleek Siamese cat with striking blue eyes. Wears a stylish collar.' },
-  'robot': { name: 'R0-B0', emoji: '🤖', visualDescriptor: 'A cute, round robot with glowing eyes and a metallic finish.' },
-  'alien': { name: 'Zorp', emoji: '👽', visualDescriptor: 'A friendly green alien with large black eyes and a small spacesuit.' }
+  'dog': { 
+    name: 'Rowan "Barn" Beagle', 
+    emoji: '🐶', 
+    visualDescriptor: 'A beagle with floppy ears, a wet black nose, and an alert expression. Wears a small detective-style hat.',
+    trait: 'You are a loyal, curious detective dog.'
+  },
+  'cat': { 
+    name: 'Shiloh "Silky" Siamese', 
+    emoji: '🐱', 
+    visualDescriptor: 'A sleek Siamese cat with striking blue eyes. Wears a stylish collar.',
+    trait: 'You are a sophisticated, slightly sarcastic but caring cat.'
+  },
+  'robot': { 
+    name: 'R0-B0', 
+    emoji: '🤖', 
+    visualDescriptor: 'A cute, round robot with glowing eyes and a metallic finish.',
+    trait: 'You are a helpful, logical, and enthusiastic robot assistant.'
+  },
+  'alien': { 
+    name: 'Zorp', 
+    emoji: '👽', 
+    visualDescriptor: 'A friendly green alien with large black eyes and a small spacesuit.',
+    trait: 'You are a curious explorer from another planet learning about Earth.'
+  }
 };
 
 const MOOD_ATTRIBUTES: Record<string, any> = {
-  'Happy': { emoji: '😊', visualDescriptor: 'Beaming smile with sparkling eyes, body bouncing with energy.' },
-  'Sad': { emoji: '😭', visualDescriptor: 'Streaming tears, slumped shoulders, head hanging low.' },
-  'Cool': { emoji: '😎', visualDescriptor: 'Wearing sunglasses, relaxed posture, looking effortless.' },
-  'Surprised': { emoji: '😲', visualDescriptor: 'Eyes wide, mouth open, jumping slightly.' }
+  'Happy': { 
+    emoji: '😊', 
+    visualDescriptor: 'Beaming smile with sparkling eyes, body bouncing with energy.',
+    voiceInstruction: 'Speak in a cheerful, energetic, and upbeat tone.'
+  },
+  'Sad': { 
+    emoji: '😭', 
+    visualDescriptor: 'Streaming tears, slumped shoulders, head hanging low.',
+    voiceInstruction: 'Speak in a slow, melancholic, and soft tone.'
+  },
+  'Cool': { 
+    emoji: '😎', 
+    visualDescriptor: 'Wearing sunglasses, relaxed posture, looking effortless.',
+    voiceInstruction: 'Speak in a laid-back, smooth, and confident tone.'
+  },
+  'Surprised': { 
+    emoji: '😲', 
+    visualDescriptor: 'Eyes wide, mouth open, jumping slightly.',
+    voiceInstruction: 'Speak in an excited, breathless, and high-pitched tone.'
+  }
 };
 
 const VISUAL_ACCESSORIES: Record<string, string[]> = {
@@ -138,7 +175,9 @@ const LiveAudioComponent = defineComponent({
         updateVolume();
 
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        session = await ai.live.connect({
+        
+        // Use promise pattern to avoid race condition in onopen
+        const sessionPromise = ai.live.connect({
           model: DEFAULT_DIALOG_MODEL,
           config: {
             responseModalities: [Modality.AUDIO],
@@ -151,11 +190,11 @@ const LiveAudioComponent = defineComponent({
               scriptProcessor.onaudioprocess = (e) => {
                 const inputData = e.inputBuffer.getChannelData(0);
                 const pcmBlob = createBlob(inputData);
-                session?.sendRealtimeInput({ media: pcmBlob });
+                sessionPromise.then(s => s.sendRealtimeInput({ media: pcmBlob }));
               };
               source.connect(scriptProcessor);
               scriptProcessor.connect(inputCtx.destination);
-              session?.sendClientContent({ turns: [{ parts: [{ text: props.initialMessage }] }], turnComplete: true });
+              sessionPromise.then(s => s.sendClientContent({ turns: [{ parts: [{ text: props.initialMessage }] }], turnComplete: true }));
             },
             onmessage: async (msg: LiveServerMessage) => {
               const audioData = msg.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
@@ -178,6 +217,8 @@ const LiveAudioComponent = defineComponent({
             onclose: () => cleanup()
           }
         });
+
+        session = await sessionPromise;
 
       } catch (err) {
         console.error(err);
