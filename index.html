@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SADIE AI AVATARS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Grandstander:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+    <!-- Import Map: Define aliases for our modules -->
+    <script type="importmap">
+{
+  "imports": {
+    "vue": "https://esm.sh/vue@3/dist/vue.esm-browser.js",
+    "@google/genai": "https://esm.sh/@google/genai@^0.9.0"
+  }
+}
+</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript">
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'purple': '#C24FF2',
+              'white': '#FFFFFF',
+              'green': '#5BB974',
+              'blue': '#DCEDF5'
+            },
+            fontFamily: {
+              sans: "'Grandstander', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+              mono: "'Roboto Mono', SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
+            }
+          }
+        }
+      }
+    </script>
+
+</head>
+<body>
+    <div id="bg"></div>
+    <div id="app">
+    </div>
+</body>
+</html>

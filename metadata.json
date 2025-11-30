@@ -1,0 +1,10 @@
+{
+  "name": "Sadiestar AI",
+  "description": "The McKinney, Texas 10 year old future cheerleader Sadie and her awesome ability to design with natural language, her own Ai Avatars, Ai Voices, Ai Scripts and Ai Movie deployments if they are responsible! From Gemini and Uncle Dustin and Nimbus iQ AI, Sadie can generate an agent of her own by following strict guideline!",
+  "requestFramePermissions": [
+    "microphone",
+    "geolocation",
+    "camera"
+  ],
+  "prompt": ""
+}
